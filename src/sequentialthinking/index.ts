@@ -29,6 +29,16 @@ interface ThoughtData {
     overconfidencePattern?: boolean; // Flag for systematic overconfidence
     uncertaintyAwareness?: number; // 0.0-1.0 score for uncertainty recognition
   };
+  // First principles thinking fields based on Musk's methodology
+  firstPrinciples?: {
+    assumptionsIdentified?: string[]; // List of assumptions to be challenged
+    assumptionsChallenged?: string[]; // Assumptions that were examined and questioned
+    fundamentalTruths?: string[]; // Core facts or laws that cannot be reduced further
+    reasoningFromZero?: boolean; // Flag indicating reasoning from fundamentals vs analogy
+    analogiesAvoided?: string[]; // Industry standards or conventions deliberately rejected
+    reconstructedSolution?: string; // Solution built from fundamental truths
+    evidenceBase?: string[]; // Factual evidence supporting the reasoning
+  };
 }
 
 class SequentialThinkingServer {
@@ -89,6 +99,29 @@ class SequentialThinkingServer {
       }
     }
 
+    // Validate first principles fields if provided
+    if (data.firstPrinciples !== undefined) {
+      const fp = data.firstPrinciples as Record<string, unknown>;
+      
+      // Validate array fields
+      const arrayFields = ['assumptionsIdentified', 'assumptionsChallenged', 'fundamentalTruths', 
+                          'analogiesAvoided', 'evidenceBase'];
+      for (const field of arrayFields) {
+        if (fp[field] !== undefined && (!Array.isArray(fp[field]) || 
+            !(fp[field] as unknown[]).every(item => typeof item === 'string'))) {
+          throw new Error(`Invalid firstPrinciples.${field}: must be an array of strings`);
+        }
+      }
+      
+      if (fp.reasoningFromZero !== undefined && typeof fp.reasoningFromZero !== 'boolean') {
+        throw new Error('Invalid firstPrinciples.reasoningFromZero: must be a boolean');
+      }
+      
+      if (fp.reconstructedSolution !== undefined && typeof fp.reconstructedSolution !== 'string') {
+        throw new Error('Invalid firstPrinciples.reconstructedSolution: must be a string');
+      }
+    }
+
     return {
       thought: data.thought,
       thoughtNumber: data.thoughtNumber,
@@ -103,6 +136,7 @@ class SequentialThinkingServer {
       confidenceReasoning: data.confidenceReasoning as string | undefined,
       uncertaintyFactors: data.uncertaintyFactors as string[] | undefined,
       calibrationMetrics: data.calibrationMetrics as ThoughtData['calibrationMetrics'] | undefined,
+      firstPrinciples: data.firstPrinciples as ThoughtData['firstPrinciples'] | undefined,
     };
   }
 
@@ -110,7 +144,7 @@ class SequentialThinkingServer {
     const { 
       thoughtNumber, totalThoughts, thought, isRevision, revisesThought, 
       branchFromThought, branchId, confidenceScore, confidenceReasoning, 
-      uncertaintyFactors, calibrationMetrics 
+      uncertaintyFactors, calibrationMetrics, firstPrinciples
     } = thoughtData;
 
     let prefix = '';
@@ -140,6 +174,30 @@ class SequentialThinkingServer {
     // Build content sections
     const sections: string[] = [thought];
     
+    // First principles sections
+    if (firstPrinciples) {
+      if (firstPrinciples.assumptionsIdentified && firstPrinciples.assumptionsIdentified.length > 0) {
+        sections.push(`${chalk.red('❌ Assumptions Identified:')} ${firstPrinciples.assumptionsIdentified.join(', ')}`);
+      }
+      
+      if (firstPrinciples.fundamentalTruths && firstPrinciples.fundamentalTruths.length > 0) {
+        sections.push(`${chalk.green('✓ Fundamental Truths:')} ${firstPrinciples.fundamentalTruths.join(', ')}`);
+      }
+      
+      if (firstPrinciples.analogiesAvoided && firstPrinciples.analogiesAvoided.length > 0) {
+        sections.push(`${chalk.yellow('🚫 Analogies Avoided:')} ${firstPrinciples.analogiesAvoided.join(', ')}`);
+      }
+      
+      if (firstPrinciples.reconstructedSolution) {
+        sections.push(`${chalk.blue('🔧 Reconstructed Solution:')} ${firstPrinciples.reconstructedSolution}`);
+      }
+      
+      if (firstPrinciples.evidenceBase && firstPrinciples.evidenceBase.length > 0) {
+        sections.push(`${chalk.cyan('📚 Evidence Base:')} ${firstPrinciples.evidenceBase.join(', ')}`);
+      }
+    }
+    
+    // Confidence sections
     if (confidenceReasoning) {
       sections.push(`${chalk.cyan('🎯 Confidence Reasoning:')} ${confidenceReasoning}`);
     }
@@ -238,6 +296,14 @@ ${formattedSections}
             }),
             ...(validatedInput.calibrationMetrics && {
               calibrationData: validatedInput.calibrationMetrics
+            }),
+            // First principles tracking
+            ...(validatedInput.firstPrinciples && {
+              firstPrinciplesApplied: {
+                assumptionsCount: validatedInput.firstPrinciples.assumptionsIdentified?.length || 0,
+                truthsCount: validatedInput.firstPrinciples.fundamentalTruths?.length || 0,
+                reasoningFromZero: validatedInput.firstPrinciples.reasoningFromZero || false
+              }
             })
           }, null, 2)
         }]
@@ -259,9 +325,9 @@ ${formattedSections}
 
 const SEQUENTIAL_THINKING_TOOL: Tool = {
   name: "sequentialthinking",
-  description: `A detailed tool for dynamic and reflective problem-solving through thoughts with enhanced confidence scoring capabilities.
-This tool helps analyze problems through a flexible thinking process that can adapt and evolve, incorporating verbalized confidence scores based on Yang et al. (2024) research methodology.
-Each thought can build on, question, or revise previous insights as understanding deepens, with explicit confidence calibration.
+  description: `Problem-solving tool that integrates first principles thinking with confidence-calibrated sequential reasoning.
+Combines Elon Musk's first principles methodology with Yang et al. (2024) confidence scoring to systematically decompose problems to fundamental truths while tracking uncertainty.
+Thoughts can challenge assumptions, identify core facts, and build solutions from fundamentals with confidence quantification.
 
 When to use this tool:
 - Breaking down complex problems into steps
@@ -272,6 +338,9 @@ When to use this tool:
 - Tasks that need to maintain context over multiple steps
 - Situations where irrelevant information needs to be filtered out
 - When confidence calibration and uncertainty quantification are important
+- Challenging industry standards or conventional approaches
+- Reducing complex problems to fundamental truths
+- Building innovative solutions from basic principles
 
 Key features:
 - You can adjust total_thoughts up or down as you progress
@@ -279,9 +348,13 @@ Key features:
 - You can add more thoughts even after reaching what seemed like the end
 - You can express uncertainty and explore alternative approaches
 - Not every thought needs to build linearly - you can branch or backtrack
-- Enhanced confidence scoring with explicit reasoning
+- Confidence scoring with explicit reasoning
 - Uncertainty factor identification and tracking
 - Calibration metrics for confidence accuracy monitoring
+- First principles decomposition and reconstruction
+- Assumption identification and challenging
+- Fundamental truth extraction
+- Evidence-based reasoning from zero
 - Generates a solution hypothesis
 - Verifies the hypothesis based on the Chain of Thought steps
 - Repeats the process until satisfied
@@ -329,6 +402,22 @@ Confidence Scoring Best Practices:
 7. Explicitly acknowledge when confidence changes between thoughts
 8. Use uncertainty_factors to be specific about sources of doubt
 
+Integrated First Principles + Confidence Methodology:
+- assumptions_identified: List all assumptions you notice in the problem (always consider)
+- assumptions_challenged: Explicitly question and test each assumption
+- fundamental_truths: Identify facts that cannot be reduced further (laws of physics, verified costs, etc.)
+- analogies_avoided: Note industry standards or conventions you're deliberately not following
+- reconstructed_solution: Build your solution from fundamental truths upward
+- evidence_base: Provide factual evidence supporting your reasoning
+- reasoning_from_zero: Set to true when building from fundamentals rather than copying existing solutions
+
+First Principles Process:
+1. Define the problem precisely without inherited constraints
+2. Break down to fundamental principles (verified facts, laws of nature)
+3. Challenge every assumption systematically
+4. Reason upward from fundamentals using logic, not analogy
+5. Create novel solutions unconstrained by "how it's always been done"
+
 You should:
 1. Start with an initial estimate of needed thoughts, but be ready to adjust
 2. Feel free to question or revise previous thoughts
@@ -341,7 +430,10 @@ You should:
 9. Repeat the process until satisfied with the solution
 10. Provide a single, ideally correct answer as the final output with confidence assessment
 11. Only set next_thought_needed to false when truly done and a satisfactory answer is reached
-12. Use confidence scoring to calibrate uncertainty and improve decision-making quality`,
+12. Use confidence scoring to calibrate uncertainty and improve decision-making quality
+13. Always identify and challenge assumptions in every thought
+14. Extract fundamental truths that cannot be reduced further
+15. Build solutions from fundamental truths, avoiding analogies unless they align with fundamentals`,
   inputSchema: {
     type: "object",
     properties: {
@@ -393,7 +485,7 @@ You should:
       },
       confidenceReasoning: {
         type: "string",
-        description: "Explicit reasoning for the confidence level assigned"
+        description: "Reasoning for the confidence level assigned"
       },
       uncertaintyFactors: {
         type: "array",
@@ -423,6 +515,45 @@ You should:
           }
         },
         description: "Optional calibration metrics for confidence accuracy tracking"
+      },
+      firstPrinciples: {
+        type: "object",
+        properties: {
+          assumptionsIdentified: {
+            type: "array",
+            items: { type: "string" },
+            description: "List of assumptions to be challenged"
+          },
+          assumptionsChallenged: {
+            type: "array",
+            items: { type: "string" },
+            description: "Assumptions that were examined and questioned"
+          },
+          fundamentalTruths: {
+            type: "array",
+            items: { type: "string" },
+            description: "Core facts or laws that cannot be reduced further"
+          },
+          reasoningFromZero: {
+            type: "boolean",
+            description: "Flag indicating reasoning from fundamentals vs analogy"
+          },
+          analogiesAvoided: {
+            type: "array",
+            items: { type: "string" },
+            description: "Industry standards or conventions deliberately rejected"
+          },
+          reconstructedSolution: {
+            type: "string",
+            description: "Solution built from fundamental truths"
+          },
+          evidenceBase: {
+            type: "array",
+            items: { type: "string" },
+            description: "Factual evidence supporting the reasoning"
+          }
+        },
+        description: "First principles thinking methodology based on Elon Musk's approach"
       }
     },
     required: ["thought", "nextThoughtNeeded", "thoughtNumber", "totalThoughts"]

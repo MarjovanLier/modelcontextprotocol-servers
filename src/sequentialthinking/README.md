@@ -1,6 +1,6 @@
 # Sequential Thinking MCP Server
 
-An MCP server implementation that provides a tool for dynamic and reflective problem-solving through a structured thinking process with enhanced confidence scoring capabilities based on Yang et al. (2024) research methodology.
+An MCP server implementation that integrates first principles thinking with confidence-calibrated sequential reasoning, combining Elon Musk's problem decomposition methodology with Yang et al. (2024) confidence scoring research for systematic, uncertainty-aware problem solving.
 
 ## Features
 
@@ -17,6 +17,14 @@ An MCP server implementation that provides a tool for dynamic and reflective pro
 - **Calibration Metrics**: Monitor confidence accuracy and detect overconfidence patterns
 - **Confidence-Based Decision Making**: Use confidence scores to improve reasoning quality
 - **Uncertainty Awareness**: Quantify and improve recognition of uncertain situations
+
+### First Principles Thinking (Elon Musk's Methodology)
+- **Assumption Identification**: Systematically identify and challenge assumptions
+- **Fundamental Truth Extraction**: Break problems down to irreducible facts
+- **Reasoning from Zero**: Build solutions from fundamentals rather than analogy
+- **Industry Convention Challenge**: Deliberately reject "how it's always been done"
+- **Evidence-Based Reconstruction**: Create novel solutions supported by facts
+- **Analogy Avoidance**: Track and avoid copying existing patterns
 
 ## Tool
 
@@ -48,6 +56,16 @@ Facilitates a detailed, step-by-step thinking process for problem-solving and an
   - `previousAccuracy` (number, 0.0-1.0): Track accuracy of previous confidence predictions
   - `overconfidencePattern` (boolean): Flag for systematic overconfidence detection
   - `uncertaintyAwareness` (number, 0.0-1.0): Score for uncertainty recognition capability
+
+**First Principles Parameters:**
+- `firstPrinciples` (object, optional but recommended): First principles thinking data
+  - `assumptionsIdentified` (array of strings): List of assumptions to be challenged
+  - `assumptionsChallenged` (array of strings): Assumptions that were examined
+  - `fundamentalTruths` (array of strings): Core facts that cannot be reduced further
+  - `reasoningFromZero` (boolean): True when building from fundamentals vs analogy
+  - `analogiesAvoided` (array of strings): Industry standards deliberately rejected
+  - `reconstructedSolution` (string): Solution built from fundamental truths
+  - `evidenceBase` (array of strings): Factual evidence supporting reasoning
 
 ## Usage
 
@@ -93,6 +111,41 @@ Enhanced confidence scoring is particularly valuable for:
     "previousAccuracy": 0.82,
     "uncertaintyAwareness": 0.88
   }
+}
+```
+
+### Example First Principles Usage
+
+```json
+{
+  "thought": "Instead of accepting the $600/kWh battery cost, I'll break this down to raw materials",
+  "thoughtNumber": 2,
+  "totalThoughts": 6,
+  "nextThoughtNeeded": true,
+  "firstPrinciples": {
+    "assumptionsIdentified": [
+      "Battery packs must cost $600/kWh",
+      "We need to buy from existing suppliers",
+      "Battery technology is mature and optimised"
+    ],
+    "fundamentalTruths": [
+      "Lithium costs $7/kg on commodity markets",
+      "Cobalt costs $33/kg",
+      "Nickel costs $14/kg",
+      "Raw materials cost ~$80/kWh at market prices"
+    ],
+    "analogiesAvoided": [
+      "Following automotive industry battery procurement",
+      "Using traditional supplier chains"
+    ],
+    "reasoningFromZero": true,
+    "evidenceBase": [
+      "London Metal Exchange commodity prices",
+      "Chemical composition of lithium-ion cells"
+    ]
+  },
+  "confidenceScore": 0.9,
+  "confidenceReasoning": "Commodity prices are publicly verifiable facts, not estimates"
 }
 ```
 
