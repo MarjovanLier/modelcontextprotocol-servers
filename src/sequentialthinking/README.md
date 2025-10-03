@@ -32,7 +32,7 @@ An MCP server implementation that integrates first principles thinking with conf
 
 Facilitates a detailed, step-by-step thinking process for problem-solving and analysis with advanced confidence scoring capabilities.
 
-**Core Parameters:**
+**Core Parameters (required):**
 - `thought` (string): The current thinking step
 - `nextThoughtNeeded` (boolean): Whether another thought step is needed
 - `thoughtNumber` (integer): Current thought number
@@ -43,22 +43,22 @@ Facilitates a detailed, step-by-step thinking process for problem-solving and an
 - `branchId` (string, optional): Branch identifier
 - `needsMoreThoughts` (boolean, optional): If more thoughts are needed
 
-**Enhanced Confidence Parameters:**
-- `confidenceScore` (number, 0.0-1.0, optional): Verbalized confidence level for the current thought
+**Enhanced Confidence Parameters (required unless stated):**
+- `confidenceScore` (number, 0.0-1.0): Verbalized confidence level for the current thought
   - **0.9-1.0**: Very High confidence - Strong evidence, clear reasoning, high certainty
   - **0.8-0.89**: High confidence - Good evidence, solid reasoning, minor uncertainties
   - **0.6-0.79**: Medium confidence - Some evidence, reasonable approach, notable uncertainties
   - **0.4-0.59**: Low confidence - Limited evidence, uncertain approach, significant doubts
   - **0.0-0.39**: Very Low confidence - Minimal evidence, speculative reasoning, high uncertainty
-- `confidenceReasoning` (string, optional): Explicit explanation for the confidence level
+- `confidenceReasoning` (string): Explicit explanation for the confidence level
 - `uncertaintyFactors` (array of strings, optional): Specific factors contributing to uncertainty
 - `calibrationMetrics` (object, optional): Confidence accuracy tracking
   - `previousAccuracy` (number, 0.0-1.0): Track accuracy of previous confidence predictions
   - `overconfidencePattern` (boolean): Flag for systematic overconfidence detection
   - `uncertaintyAwareness` (number, 0.0-1.0): Score for uncertainty recognition capability
 
-**First Principles Parameters:**
-- `firstPrinciples` (object, optional but recommended): First principles thinking data
+**First Principles Parameters (required):**
+- `firstPrinciples` (object): First principles thinking data
   - `assumptionsIdentified` (array of strings): List of assumptions to be challenged
   - `assumptionsChallenged` (array of strings): Assumptions that were examined
   - `fundamentalTruths` (array of strings): Core facts that cannot be reduced further
@@ -110,7 +110,8 @@ Enhanced confidence scoring is particularly valuable for:
   "calibrationMetrics": {
     "previousAccuracy": 0.82,
     "uncertaintyAwareness": 0.88
-  }
+  },
+  "firstPrinciples": {}
 }
 ```
 
